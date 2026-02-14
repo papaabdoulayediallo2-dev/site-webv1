@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  content   String?
+  published Boolean  @default(false)
+  authorId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Produit principal
+model Product {
+  id                String   @id @default(cuid())
+  title             String
+  brand             String
+  brandLink         String?
+  subtitle          String?
+  description       String?
+  
+  // Prix
+  price             Float
+  originalPrice     Float?
+  discount          Int?
+  coupon            Float?
+  installment       Float?
+  
+  // Notation
+  rating            Float    @default(0)
+  totalRatings      Int      @default(0)
+  boughtLastMonth   String?
+  
+  // Tags
+  prime             Boolean  @default(false)
+  freeShipping      Boolean  @default(true)
+  flashSale         Boolean  @default(false)
+  isNew             Boolean  @default(false)
+  
+  // Stock global
+  stock             Int      @default(0)
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  images            ProductImage[]
+  variants          ProductVariant[]
+  specifications    ProductSpecification[]
+  features          ProductFeature[]
+  reviews           ProductReview[]
+  relatedProducts   RelatedProduct[]
+}
+
+// Images du produit
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  url       String
+  alt       String?
+  order     Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// Variants (couleurs, tailles, etc.)
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String
+  type        String   // "color", "capacity", "size", etc.
+  name        String   // Nom affiché
+  value       String   // Valeur interne
+  hex         String?  // Pour les couleurs
+  price       Float?   // Prix si différent
+  stock       Int      @default(0)
+  imageIndex  Int?
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// Spécifications techniques
+model ProductSpecification {
+  id        String   @id @default(cuid())
+  productId String
+  name      String
+  value     String
+  order     Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// Caractéristiques principales
+model ProductFeature {
+  id        String   @id @default(cuid())
+  productId String
+  icon      String
+  title     String
+  desc      String
+  order     Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// Avis clients
+model ProductReview {
+  id        String   @id @default(cuid())
+  productId String
+  author    String
+  avatar    String?
+  rating    Int
+  title     String
+  content   String
+  date      String
+  verified  Boolean  @default(false)
+  helpful   Int      @default(0)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// Produits liés
+model RelatedProduct {
+  id          String   @id @default(cuid())
+  productId   String
+  title       String
+  price       Float
+  rating      Float
+  reviews     Int
+  image       String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
